@@ -6,6 +6,7 @@ import warnings
 
 import pymia.filtering.filter as pymia_fltr
 import SimpleITK as sitk
+import numpy as np
 
 
 class ImageNormalization(pymia_fltr.Filter):
@@ -29,8 +30,8 @@ class ImageNormalization(pymia_fltr.Filter):
         img_arr = sitk.GetArrayFromImage(image)
 
         # DONE: normalize the image using numpy
-        min_val = img_arr.min()
-        max_val = img_arr.max()
+        min_val = np.min(img_arr)
+        max_val = np.max(img_arr)
 
         img_arr = (img_arr - min_val) / (max_val - min_val)
 
