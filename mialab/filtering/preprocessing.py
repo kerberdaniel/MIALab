@@ -28,8 +28,13 @@ class ImageNormalization(pymia_fltr.Filter):
 
         img_arr = sitk.GetArrayFromImage(image)
 
-        # todo: normalize the image using numpy
-        warnings.warn('No normalization implemented. Returning unprocessed image.')
+        # DONE: normalize the image using numpy
+        min_val = img_arr.min()
+        max_val = img_arr.max()
+
+        img_arr = (img_arr - min_val) / (max_val - min_val)
+
+        # warnings.warn('No normalization implemented. Returning unprocessed image.')
 
         img_out = sitk.GetImageFromArray(img_arr)
         img_out.CopyInformation(image)
@@ -77,10 +82,19 @@ class SkullStripping(pymia_fltr.Filter):
         """
         mask = params.img_mask  # the brain mask
 
-        # todo: remove the skull from the image by using the brain mask
-        warnings.warn('No skull-stripping implemented. Returning unprocessed image.')
+        # DONE: remove the skull from the image by using the brain mask
 
-        return image
+        img_arr = sitk.GetArrayFromImage(image)
+        mask_arr = sitk.GetArrayFromImage(mask)
+
+        img_arr[mask_arr == 0] = 0
+
+        skull_stripped_image = sitk.GetImageFromArray(img_arr)
+        skull_stripped_image.CopyInformation(image)
+
+        # warnings.warn('No skull-stripping implemented. Returning unprocessed image.')
+
+        return skull_stripped_image
 
     def __str__(self):
         """Gets a printable string representation.
