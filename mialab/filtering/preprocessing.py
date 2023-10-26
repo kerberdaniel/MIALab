@@ -7,6 +7,7 @@ import warnings
 import pymia.filtering.filter as pymia_fltr
 import SimpleITK as sitk
 import numpy as np
+import pymia.filtering.registration as fltr_reg
 
 
 class ImageNormalization(pymia_fltr.Filter):
@@ -141,9 +142,9 @@ class ImageRegistration(pymia_fltr.Filter):
             sitk.Image: The registered image.
         """
 
-        # todo: replace this filter by a registration. Registration can be costly, therefore, we provide you the
+        # (partially done): replace this filter by a registration. Registration can be costly, therefore, we provide you the
         # transformation, which you only need to apply to the image!
-        warnings.warn('No registration implemented. Returning unregistered image')
+        # warnings.warn('No registration implemented. Returning unregistered image')
 
         atlas = params.atlas
         transform = params.transformation
@@ -153,7 +154,20 @@ class ImageRegistration(pymia_fltr.Filter):
         # pymia.filtering.registration.MultiModalRegistration. Think about the type of registration, i.e.
         # do you want to register to an atlas or inter-subject? Or just ask us, we can guide you ;-)
 
-        return image
+        # Check if this is ground truth data (binary variable)
+        if is_ground_truth:
+            # Special handling for gt data:
+            registered_image = sitk.Resample(image1=image, referenceImage=atlas, transform=transform,
+                                             interpolator=sitk.sitkNearestNeighbor)
+        else:
+            # we perform an atlas-based registration based on pymia. (does work but is suuper slow: next 3 lines)
+            # registration = fltr_reg.MultiModalRegistration()
+            # registration_params = fltr_reg.MultiModalRegistrationParams(atlas)
+            # registered_image = registration.execute(image=image, params=registration_params)
+            registered_image = sitk.Resample(image1=image, referenceImage=atlas, transform=transform,
+                                             interpolator=sitk.sitkLinear)
+
+        return registered_image
 
     def __str__(self):
         """Gets a printable string representation.
