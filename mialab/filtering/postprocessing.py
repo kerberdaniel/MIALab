@@ -29,8 +29,10 @@ class ImagePostProcessing(pymia_fltr.Filter):
             sitk.Image: The post-processed image.
         """
 
-        # todo: replace this filter by a post-processing - or do we need post-processing at all?
-        warnings.warn('No post-processing implemented. Can you think about something?')
+        # to-do: replace this filter by a post-processing - or do we need post-processing at all?
+        # Post-Processing is after the feature extraction, therefore I just removed the warning
+        # I dont think we have to do it for our project
+        # warnings.warn('No post-processing implemented. Can you think about something?')
 
         return image
 
