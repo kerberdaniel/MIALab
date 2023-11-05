@@ -2,14 +2,14 @@
 import enum
 import os
 import typing as t
-import warnings
 
+import SimpleITK as sitk
 import numpy as np
 import pymia.data.conversion as conversion
-import pymia.filtering.filter as fltr
 import pymia.evaluation.evaluator as eval_
 import pymia.evaluation.metric as metric
-import SimpleITK as sitk
+import pymia.filtering.filter as fltr
+from radiomics import featureextractor, glcm
 
 import mialab.data.structure as structure
 import mialab.filtering.feature_extraction as fltr_feat
@@ -44,7 +44,8 @@ class FeatureImageTypes(enum.Enum):
     T1w_GRADIENT_INTENSITY = 3
     T2w_INTENSITY = 4
     T2w_GRADIENT_INTENSITY = 5
-
+    T1w_GLCM = 6   # TODO: Added here
+    T2w_GLCM = 7   # TODO: Added here
 
 class FeatureExtractor:
     """Represents a feature extractor."""
@@ -60,14 +61,18 @@ class FeatureExtractor:
         self.coordinates_feature = kwargs.get('coordinates_feature', False)
         self.intensity_feature = kwargs.get('intensity_feature', False)
         self.gradient_intensity_feature = kwargs.get('gradient_intensity_feature', False)
+        self.GLCM_features = kwargs.get('GLCM_features', False)  # TODO: ensure this is correct
+                                                                # initialization
+        self.GLCM_features_parameters = kwargs.get('GLCM_features_parameters', {}) # Here too
 
+    @property
     def execute(self) -> structure.BrainImage:
         """Extracts features from an image.
 
         Returns:
             structure.BrainImage: The image with extracted features.
         """
-        #warnings.warn('No features from T2-weighted image extracted.')
+        # warnings.warn('No features from T2-weighted image extracted.')
 
         if self.coordinates_feature:
             atlas_coordinates = fltr_feat.AtlasCoordinates()
@@ -84,6 +89,28 @@ class FeatureExtractor:
                 sitk.GradientMagnitude(self.img.images[structure.BrainImageTypes.T1w])
             self.img.feature_images[FeatureImageTypes.T2w_GRADIENT_INTENSITY] = \
                 sitk.GradientMagnitude(self.img.images[structure.BrainImageTypes.T2w])
+
+        if self.GLCM_features:
+            # TODO: GLCM Features
+            # compute GLCM features
+            glcmT1w_features = glcm.RadiomicsGLCM(self.img.images[structure.BrainImageTypes.T1w],
+                                                  self.img.images[structure.BrainImageTypes.BrainMask],
+                                                  voxelBased=True)
+            glcmT1w_features.enabledFeatures = self.GLCM_features_parameters
+            self.img.feature_images[FeatureImageTypes.T1w_GLCM] = glcmT1w_features.execute()
+            self.img.feature_images[FeatureImageTypes.T1w_GLCM] = sitk.Compose(
+                list(self.img.feature_images[FeatureImageTypes.T1w_GLCM].values()))
+            self.img.feature_images[FeatureImageTypes.T1w_GLCM].CopyInformation(
+                self.img.images[structure.BrainImageTypes.T1w])
+            glcmT2w_features = glcm.RadiomicsGLCM(self.img.images[structure.BrainImageTypes.T2w],
+                                                  self.img.images[structure.BrainImageTypes.BrainMask],
+                                                  voxelBased=True)
+            glcmT2w_features.enabledFeatures = self.GLCM_features_parameters
+            self.img.feature_images[FeatureImageTypes.T2w_GLCM] = glcmT2w_features.execute()
+            self.img.feature_images[FeatureImageTypes.T2w_GLCM] = sitk.Compose(
+                list(self.img.feature_images[FeatureImageTypes.T2w_GLCM].values()))
+            self.img.feature_images[FeatureImageTypes.T2w_GLCM].CopyInformation(
+                self.img.images[structure.BrainImageTypes.T2w])
 
         self._generate_feature_matrix()
 
@@ -247,7 +274,7 @@ def pre_process(id_: str, paths: dict, **kwargs) -> structure.BrainImage:
 
     # extract the features
     feature_extractor = FeatureExtractor(img, **kwargs)
-    img = feature_extractor.execute()
+    img = feature_extractor.execute
 
     img.feature_images = {}  # we free up memory because we only need the img.feature_matrix
     # for training of the classifier
@@ -292,7 +319,7 @@ def init_evaluator() -> eval_.Evaluator:
 
     # initialize metrics
     metrics = [metric.DiceCoefficient(), metric.HausdorffDistance(95)]
-    #warnings.warn('Initialized evaluation with the Dice coefficient. Do you know other suitable metrics?')
+    # warnings.warn('Initialized evaluation with the Dice coefficient. Do you know other suitable metrics?')
 
     # define the labels to evaluate
     labels = {1: 'WhiteMatter',

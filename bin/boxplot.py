@@ -11,7 +11,7 @@ def main():
     current_directory = os.getcwd()
     target_directory = os.path.join(current_directory, 'mia-result')
 
-    folder_name = '2023-11-01-08-41-52'  # Change here!!!!!!!!!
+    folder_name = '2023-11-05-15-44-46'  # Change here!!!!!!!!!
     file_name = 'results.csv'
 
     file_path = os.path.join(target_directory, folder_name, file_name)
@@ -47,22 +47,22 @@ def main():
     # Now the same thing for the Hausdorff => uncomment this as soon as Hausdorff has been implemented and then you get
     # the boxplot
 
-    # # Set the figure size
-    # plt.figure(figsize=(10, 6))
-    #
-    # # Use boxplot function to create boxplot for HAUSDORFF
-    # plt.boxplot([data[data["LABEL"] == label]["HAUSDORFF"]
-    #              for label in data["LABEL"].unique()],
-    #             labels=data["LABEL"].unique())
-    #
-    # # Adding title x and y label:
-    # plt.title("Hausdorff Coefficients by Label")
-    # plt.xlabel("Label")
-    # plt.ylabel("Hausdorff Coefficients")
-    #
-    # plt.savefig("hausdorff_boxplot.png")
-    #
-    # plt.show()
+    # Set the figure size
+    plt.figure(figsize=(10, 6))
+
+    # Use boxplot function to create boxplot for HAUSDORFF
+    plt.boxplot([data[data["LABEL"] == label]["HDRFDST"]
+                 for label in data["LABEL"].unique()],
+                labels=data["LABEL"].unique())
+
+    # Adding title x and y label:
+    plt.title("Hausdorff Coefficients by Label")
+    plt.xlabel("Label")
+    plt.ylabel("Hausdorff Coefficients")
+
+    plt.savefig("hausdorff_boxplot.png")
+
+    plt.show()
 
     # labels = ["Amygdala", "GreyMatter", "Hippocampus", "Thalamus", "WhiteMatter"]
 
