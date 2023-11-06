@@ -58,12 +58,24 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
                                           LOADING_KEYS,
                                           futil.BrainImageFilePathGenerator(),
                                           futil.DataDirectoryFilter())
+
+    # TODO: List here features we want to try
+    glcm_parameters_list = {'Imc1': True,
+                            'Imc2': True,
+                            'Idm': True,
+                            }
+
     pre_process_params = {'skullstrip_pre': True,
                           'normalization_pre': True,
                           'registration_pre': True,
                           'coordinates_feature': True,
                           'intensity_feature': True,
-                          'gradient_intensity_feature': True}
+                          'gradient_intensity_feature': True,
+                          'GLCM_features': False,    # TODO: False = Baseline and True = Test with Pyradiomics
+                          'GLCM_features_parameters': glcm_parameters_list,
+                          'n_estimators': 50,   # TODO: Test other values
+                          'max_depth': 60   # TODO: Test other values
+                          }
 
     # load images for training and pre-process
     images = putil.pre_process_batch(crawler.data, pre_process_params, multi_process=False)
@@ -72,10 +84,14 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
     data_train = np.concatenate([img.feature_matrix[0] for img in images])
     labels_train = np.concatenate([img.feature_matrix[1] for img in images]).squeeze()
 
-    warnings.warn('Random forest parameters not properly set.')
+    #warnings.warn('Random forest parameters not properly set.')
+    # forest = sk_ensemble.RandomForestClassifier(max_features=images[0].feature_matrix[0].shape[1],
+    #                                             n_estimators=1,
+    #                                             max_depth=5)
+
     forest = sk_ensemble.RandomForestClassifier(max_features=images[0].feature_matrix[0].shape[1],
-                                                n_estimators=1,
-                                                max_depth=5)
+                                                n_estimators=pre_process_params['n_estimators'],
+                                                max_depth=pre_process_params['max_depth'])
 
     start_time = timeit.default_timer()
     forest.fit(data_train, labels_train)
