@@ -11,7 +11,7 @@ def main():
     current_directory = os.getcwd()
     target_directory = os.path.join(current_directory, 'mia-result')
 
-    folder_name = '2023-11-05-15-44-46'  # Change here!!!!!!!!!
+    folder_name = '2023-11-06-09-20-08'  # Change here!!!!!!!!!
     file_name = 'results.csv'
 
     file_path = os.path.join(target_directory, folder_name, file_name)
@@ -39,6 +39,9 @@ def main():
     plt.xlabel("Label")
     plt.ylabel("Dice Coefficients")
 
+    # Set y-axis limits
+    plt.ylim(0.4, 0.85)
+
     # Save the boxplot as png file
     plt.savefig("dice_boxplot.png")
 
@@ -60,7 +63,12 @@ def main():
     plt.xlabel("Label")
     plt.ylabel("Hausdorff Coefficients")
 
+    # Set y-axis limits
+    plt.ylim(0, 18)
+
     plt.savefig("hausdorff_boxplot.png")
+
+
 
     plt.show()
 

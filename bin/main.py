@@ -71,7 +71,7 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
                           'coordinates_feature': True,
                           'intensity_feature': True,
                           'gradient_intensity_feature': True,
-                          'GLCM_features': True,    # TODO: False = Baseline and True = Test with Pyradiomics
+                          'GLCM_features': False,    # TODO: False = Baseline and True = Test with Pyradiomics
                           'GLCM_features_parameters': glcm_parameters_list,
                           'n_estimators': 50,   # TODO: Test other values
                           'max_depth': 60   # TODO: Test other values
