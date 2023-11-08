@@ -71,7 +71,7 @@ other)
 
 2) run the fetch_result script --> double click on it
 	--> This means that you have to have the script in your local PC
-	--> will ask your password 2 times
+	--> will ask your password 3 times
 
 
 
