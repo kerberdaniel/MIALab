@@ -11,6 +11,18 @@
 8) enter again in the scripts folder and modify the script.sh --> nano script.sh (just change your mail at the bottom so you will recive an email when the job start/end/fail)
 	ctrl + X to close and Y for save
 9) submit the job --> sh script.sh output: Submitted batch job XXXXXX
+	if when submit a script the output is:
+
+		[mt19n014@submit01 scripts]$ sh script.sh
+		script.sh: line 2: $'\r': command not found
+		script.sh: line 3: $'\r': command not found
+		script.sh: line 8: $'\r': command not found
+		script.sh: line 15: $'\r': command not found
+		script.sh: line 20: $'\r': command not found
+		script.sh: line 21: $'\r': command not found
+
+		--> run dos2unix script.sh
+
 10) see if the job is working --> squeue --me
 	output:
 
