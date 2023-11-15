@@ -8,6 +8,7 @@ import os
 import sys
 import timeit
 import warnings
+import random
 
 import SimpleITK as sitk
 import sklearn.ensemble as sk_ensemble
@@ -47,6 +48,11 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
         - Post-processing of the segmentation
         - Evaluation of the segmentation
     """
+
+    # use of random seed for better reproducibility:
+    random_seed = 50
+    np.random.seed(random_seed)
+    random.seed(random_seed)
 
     # load atlas images
     putil.load_atlas_images(data_atlas_dir)
@@ -90,7 +96,8 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
 
     forest = sk_ensemble.RandomForestClassifier(max_features=images[0].feature_matrix[0].shape[1],
                                                 n_estimators=pre_process_params['n_estimators'],
-                                                max_depth=pre_process_params['max_depth'])
+                                                max_depth=pre_process_params['max_depth'],
+                                                random_state=random_seed)
 
     start_time = timeit.default_timer()
     forest.fit(data_train, labels_train)
