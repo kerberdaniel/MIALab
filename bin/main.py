@@ -64,10 +64,10 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
                                           futil.BrainImageFilePathGenerator(),
                                           futil.DataDirectoryFilter())
 
-    # glcm_parameters_list = {'Imc1': True,
-    #                         # 'Imc2': True,
-    #                         # 'Idm': True,
-    #                         }
+    glcm_parameters_list = {'Imc1': True,
+                            'Imc2': True,
+                            'Idm': True,
+                            }
 
     pre_process_params = {'skullstrip_pre': True,
                           'normalization_pre': True,
@@ -75,7 +75,8 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
                           'coordinates_feature': True,
                           'intensity_feature': True,
                           'gradient_intensity_feature': True,
-                          'GLCM_features': False,  # Enable GLCM feature extraction
+                          'GLCM_features': True,  # Enable GLCM feature extraction
+                          'GLCM_features_parameters': glcm_parameters_list,
                           'n_estimators': 50,
                           'max_depth': 60
                           }
@@ -105,6 +106,17 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
     t = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     result_dir = os.path.join(result_dir, t)
     os.makedirs(result_dir, exist_ok=True)
+
+    # Save parameters to a text file in the timestamped result directory
+    params_file_path = os.path.join(result_dir, 'parameters.txt')
+    with open(params_file_path, 'w') as params_file:
+        for key, value in pre_process_params.items():
+            if isinstance(value, dict):
+                params_file.write(f'{key}:\n')
+                for sub_key, sub_value in value.items():
+                    params_file.write(f'  {sub_key}: {sub_value}\n')
+            else:
+                params_file.write(f'{key}: {value}\n')
 
     print('-' * 5, 'Testing...')
 
