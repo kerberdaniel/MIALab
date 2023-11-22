@@ -100,45 +100,53 @@ class FeatureExtractor:
         if self.GLCM_features:
             # compute GLCM features
 
-            enabled_glcms = [feature for feature, enabled in self.GLCM_features_parameters.items() if enabled]
-            print("Enabled GLCM features:", enabled_glcms)
+            # Assuming self.img.images[structure.BrainImageTypes.T1w] is your T1-weighted image
+            # and self.img.images[structure.BrainImageTypes.BrainMask] is your brain mask
 
-            # Create GLCM features for T1-weighted images
+            # Enable GLCM features based on the specified GLCM feature parameters
             glcmT1w_features = glcm.RadiomicsGLCM(self.img.images[structure.BrainImageTypes.T1w],
                                                   self.img.images[structure.BrainImageTypes.BrainMask],
                                                   voxelBased=True)
 
+            # Print the GLCM features that are in use
+            print("GLCM features in use:", self.GLCM_features_parameters)
+
             # Enable specified GLCM features
             glcmT1w_features.enabledFeatures = self.GLCM_features_parameters
 
-            # Execute GLCM feature extraction
+            # Execute GLCM feature extraction on the T1-weighted image
             self.img.feature_images[FeatureImageTypes.T1w_GLCM] = glcmT1w_features.execute()
 
-            # Create GLCM features for T2-weighted images
+            # Combine individual GLCM features into a composite image (if needed)
+            composite_image_t1 = sitk.Compose(list(self.img.feature_images[FeatureImageTypes.T1w_GLCM].values()))
+
+            # Copy information from the original T1-weighted image
+            composite_image_t1.CopyInformation(self.img.images[structure.BrainImageTypes.T1w])
+
+            # Store the composite image
+            self.img.feature_images[FeatureImageTypes.T1w_GLCM] = composite_image_t1
+
+            # Enable GLCM features based on the specified GLCM feature parameters for T2-weighted image
             glcmT2w_features = glcm.RadiomicsGLCM(self.img.images[structure.BrainImageTypes.T2w],
                                                   self.img.images[structure.BrainImageTypes.BrainMask],
                                                   voxelBased=True)
 
-            # Enable GLCM features based on the specified GLCM feature parameters
+            # Print the GLCM features that are in use for T2-weighted image
+            print("GLCM features in use for T2-weighted image:", self.GLCM_features_parameters)
+
+            # Enable specified GLCM features for T2-weighted image
             glcmT2w_features.enabledFeatures = self.GLCM_features_parameters
 
-            # Execute GLCM feature extraction
+            # Execute GLCM feature extraction on the T2-weighted image
             self.img.feature_images[FeatureImageTypes.T2w_GLCM] = glcmT2w_features.execute()
 
-            # Combine individual GLCM features into a composite image for T1-weighted
-            composite_image_t1 = sitk.Compose([self.img.feature_images[FeatureImageTypes.T1w_GLCM][feature_name]
-                                               for feature_name in self.GLCM_features_parameters.keys()])
+            # Combine individual GLCM features into a composite image for T2-weighted (if needed)
+            composite_image_t2 = sitk.Compose(list(self.img.feature_images[FeatureImageTypes.T2w_GLCM].values()))
 
-            # Combine individual GLCM features into a composite image for T2-weighted
-            composite_image_t2 = sitk.Compose([self.img.feature_images[FeatureImageTypes.T2w_GLCM][feature_name]
-                                               for feature_name in self.GLCM_features_parameters.keys()])
-
-            # Copy information from the original T1-weighted and T2-weighted images
-            composite_image_t1.CopyInformation(self.img.images[structure.BrainImageTypes.T1w])
+            # Copy information from the original T2-weighted image
             composite_image_t2.CopyInformation(self.img.images[structure.BrainImageTypes.T2w])
 
-            # Store the composite images
-            self.img.feature_images[FeatureImageTypes.T1w_GLCM] = composite_image_t1
+            # Store the composite image for T2-weighted
             self.img.feature_images[FeatureImageTypes.T2w_GLCM] = composite_image_t2
 
         self._generate_feature_matrix()
