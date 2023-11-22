@@ -131,9 +131,6 @@ class FeatureExtractor:
                                                   self.img.images[structure.BrainImageTypes.BrainMask],
                                                   voxelBased=True)
 
-            # Print the GLCM features that are in use for T2-weighted image
-            print("GLCM features in use for T2-weighted image:", self.GLCM_features_parameters)
-
             # Enable specified GLCM features for T2-weighted image
             glcmT2w_features.enabledFeatures = self.GLCM_features_parameters
 
