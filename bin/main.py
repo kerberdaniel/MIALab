@@ -64,10 +64,69 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
                                           futil.BrainImageFilePathGenerator(),
                                           futil.DataDirectoryFilter())
 
-    glcm_parameters_list = {'Imc1': True,
-                            'Imc2': True,
+    # set parameters for pre-processing
+
+    glszm_parameters_list = {'SmallAreaEmphasis': True,
+                             'LargeAreaEmphasis': True,
+                             'GrayLevelNonUniformity': False,
+                             'GrayLevelNonUniformityNormalized': False,
+                             'SizeZoneNonUniformity': False,
+                             'SizeZoneNonUniformityNormalized': False,
+                             'ZonePercentage': False,
+                             'GrayLevelVariance': False,
+                             'ZoneVariance': False,
+                             'ZoneEntropy': False,
+                             'LowGrayLevelZoneEmphasis': False,
+                             'HighGrayLevelZoneEmphasis': False,
+                             'SmallAreaLowGrayLevelEmphasis': False,
+                             'SmallAreaHighGrayLevelEmphasis': False,
+                             'LargeAreaLowGrayLevelEmphasis': False,
+                             'LargeAreaHighGrayLevelEmphasis': False,
+                             }
+
+    fo_parameters_list = {'10Percentile': True,
+                          '90Percentile': True,
+                          'Energy': False,
+                          'Entropy': False,
+                          'InterquartileRange': False,
+                          'Kurtosis': False,
+                          'Maximum': False,
+                          'MeanAbsoluteDeviation': False,
+                          'Mean': False,
+                          'Median': False,
+                          'Minimum': False,
+                          'Range': False,
+                          'RobustMeanAbsoluteDeviation': False,
+                          'RootMeanSquared': False,
+                          'Skewness': False,
+                          'TotalEnergy': False,
+                          'Uniformity': False,
+                          'Variance': False}
+
+    glcm_parameters_list = {'Autocorrelation': False,
+                            'ClusterProminence': False,
+                            'ClusterShade': False,
+                            'ClusterTendency': False,
+                            'Contrast': False,
+                            'Correlation': False,
+                            'DifferenceAverage': False,
+                            'DifferenceEntropy': False,
+                            'DifferenceVariance': False,
+                            'Id': False,
                             'Idm': True,
-                            }
+                            'Idmn': False,
+                            'Idn': False,
+                            'Imc1': True,
+                            'Imc2': True,
+                            'InverseVariance': False,
+                            'JointAverage': False,  # cause error
+                            'JointEnergy': False,
+                            'JointEntropy': False,
+                            'MCC': False,  # cause error
+                            'MaximumProbability': False,
+                            'SumAverage': False,  # cause error
+                            'SumEntropy': False,
+                            'SumSquares': False}
 
     pre_process_params = {'skullstrip_pre': True,
                           'normalization_pre': True,
@@ -75,8 +134,12 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
                           'coordinates_feature': True,
                           'intensity_feature': True,
                           'gradient_intensity_feature': True,
-                          'GLCM_features': True,  # Enable GLCM feature extraction
+                          'GLCM_features': False,  # Enable GLCM feature extraction
                           'GLCM_features_parameters': glcm_parameters_list,
+                          'FO_features': False,  # Enable FO feature extraction
+                          'FO_features_parameters': fo_parameters_list,
+                          'GLSZM_features': True,  # Enable GLSZM feature extraction
+                          'GLSZM_features_parameters': glszm_parameters_list,
                           'n_estimators': 50,
                           'max_depth': 60
                           }

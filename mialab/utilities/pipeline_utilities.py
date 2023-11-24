@@ -9,7 +9,7 @@ import pymia.data.conversion as conversion
 import pymia.evaluation.evaluator as eval_
 import pymia.evaluation.metric as metric
 import pymia.filtering.filter as fltr
-from radiomics import featureextractor, glcm
+from radiomics import featureextractor, glcm, firstorder, glszm
 
 import mialab.data.structure as structure
 import mialab.filtering.feature_extraction as fltr_feat
@@ -40,12 +40,21 @@ class FeatureImageTypes(enum.Enum):
     """Represents the feature image types."""
 
     ATLAS_COORD = 1
+
     T1w_INTENSITY = 2
     T1w_GRADIENT_INTENSITY = 3
+
     T2w_INTENSITY = 4
     T2w_GRADIENT_INTENSITY = 5
-    T1w_GLCM = 6  # DONE: GLCM feature for T1-weighted images
+
+    T1w_GLCM = 6  # GLCM feature for T1-weighted images
     T2w_GLCM = 7  # GLCM feature for T2-weighted images
+
+    T1w_FO = 8  # FO feature for T1-weighted images
+    T2w_FO = 9  # FO feature for T2-weighted images
+
+    T1w_GLSZM = 10  # GLSZM feature for T1-weighted images
+    T2w_GLSZM = 11  # GLSZM feature for T1-weighted images
 
 
 class FeatureExtractor:
@@ -62,15 +71,35 @@ class FeatureExtractor:
         self.coordinates_feature = kwargs.get('coordinates_feature', False)
         self.intensity_feature = kwargs.get('intensity_feature', False)
         self.gradient_intensity_feature = kwargs.get('gradient_intensity_feature', False)
-        self.GLCM_features = kwargs.get('GLCM_features', False)  # TODO: ensure this is correct
-        self.GLCM_features_parameters = kwargs.get('GLCM_features_parameters', {}) # Here too
+
+        # get feature type
+        self.GLCM_features = kwargs.get('GLCM_features', False)
+        self.FO_features = kwargs.get('FO_features', False)
+        self.GLSZM_features = kwargs.get('GLSZM_features', False)
+
+        # get the feature extraction parameters
+        self.GLCM_features_parameters = kwargs.get('GLCM_features_parameters', {})
+        self.FO_features_parameters = kwargs.get('FO_features_parameters', {})
+        self.GLSZM_features_parameters = kwargs.get('GLSZM_features_parameters', {})
+
 
         # Initialize PyRadiomics feature extractor for GLCM features
         if self.GLCM_features:
-            self.pyradiomics_extractor = featureextractor.RadiomicsFeatureExtractor()
-            self.pyradiomics_extractor.disableAllFeatures()
-            self.pyradiomics_extractor.enableFeatureClassByName('glcm')
+            self.pyradiomics_extractor_GLCM = featureextractor.RadiomicsFeatureExtractor()
+            self.pyradiomics_extractor_GLCM.disableAllFeatures()
+            self.pyradiomics_extractor_GLCM.enableFeatureClassByName('glcm')
 
+        # Initialize PyRadiomics feature extractor for FO features
+        if self.FO_features:
+            self.pyradiomics_extractor_FO = featureextractor.RadiomicsFeatureExtractor()
+            self.pyradiomics_extractor_FO.disableAllFeatures()
+            self.pyradiomics_extractor_FO.enableFeatureClassByName('firstorder')
+
+        # Initialize PyRadiomics feature extractor for GLSZM features
+        if self.GLSZM_features:
+            self.pyradiomics_extractor_GLSZM = featureextractor.RadiomicsFeatureExtractor()
+            self.pyradiomics_extractor_GLSZM.disableAllFeatures()
+            self.pyradiomics_extractor_GLSZM.enableFeatureClassByName('glszm')
 
     @property
     def execute(self) -> structure.BrainImage:
@@ -97,9 +126,8 @@ class FeatureExtractor:
             self.img.feature_images[FeatureImageTypes.T2w_GRADIENT_INTENSITY] = \
                 sitk.GradientMagnitude(self.img.images[structure.BrainImageTypes.T2w])
 
+        # compute GLCM features
         if self.GLCM_features:
-            # compute GLCM features
-
             # Assuming self.img.images[structure.BrainImageTypes.T1w] is your T1-weighted image
             # and self.img.images[structure.BrainImageTypes.BrainMask] is your brain mask
 
@@ -109,7 +137,7 @@ class FeatureExtractor:
                                                   voxelBased=True)
 
             # Print the GLCM features that are in use
-            print("GLCM features in use:", self.GLCM_features_parameters)
+            print("GLCM features in use:", [key for key, value in self.GLCM_features_parameters.items() if value])
 
             # Enable specified GLCM features
             glcmT1w_features.enabledFeatures = self.GLCM_features_parameters
@@ -145,6 +173,66 @@ class FeatureExtractor:
 
             # Store the composite image for T2-weighted
             self.img.feature_images[FeatureImageTypes.T2w_GLCM] = composite_image_t2
+
+        # compute FO features
+        if self.FO_features:
+            # Assuming self.img.images[structure.BrainImageTypes.T1w] is your T1-weighted image
+            # and self.img.images[structure.BrainImageTypes.BrainMask] is your brain mask
+
+            # Enable FO features based on the specified FO feature parameters
+            foT1w_features = firstorder.RadiomicsFirstOrder(self.img.images[structure.BrainImageTypes.T1w],
+                                                            self.img.images[structure.BrainImageTypes.BrainMask],
+                                                            voxelBased=True)
+
+            # Print the FO features that are in use
+            print("FO features in use:", [key for key, value in self.FO_features_parameters.items() if value])
+
+            # Enable specified FO features
+            foT1w_features.enabledFeatures = self.FO_features_parameters
+
+            # Execute FO feature extraction on the T1-weighted image
+            self.img.feature_images[FeatureImageTypes.T1w_FO] = foT1w_features.execute()
+
+            # Combine individual FO features into a composite image (if needed)
+            composite_image_t1_fo = sitk.Compose(list(self.img.feature_images[FeatureImageTypes.T1w_FO].values()))
+
+            # Copy information from the original T1-weighted image
+            composite_image_t1_fo.CopyInformation(self.img.images[structure.BrainImageTypes.T1w])
+
+            # Store the composite image for T1-weighted FO
+            self.img.feature_images[FeatureImageTypes.T1w_FO] = composite_image_t1_fo
+
+            # Similar steps for T2-weighted FO features
+
+        # compute GLSZM features
+        if self.GLSZM_features:
+            # Assuming self.img.images[structure.BrainImageTypes.T1w] is your T1-weighted image
+            # and self.img.images[structure.BrainImageTypes.BrainMask] is your brain mask
+
+            # Enable GLSZM features based on the specified GLSZM feature parameters
+            glszmT1w_features = glszm.RadiomicsGLSZM(self.img.images[structure.BrainImageTypes.T1w],
+                                                     self.img.images[structure.BrainImageTypes.BrainMask],
+                                                     voxelBased=True)
+
+            # Print the GLSZM features that are in use
+            print("GLSZM features in use:", [key for key, value in self.GLSZM_features_parameters.items() if value])
+
+            # Enable specified GLSZM features
+            glszmT1w_features.enabledFeatures = self.GLSZM_features_parameters
+
+            # Execute GLSZM feature extraction on the T1-weighted image
+            self.img.feature_images[FeatureImageTypes.T1w_GLSZM] = glszmT1w_features.execute()
+
+            # Combine individual GLSZM features into a composite image (if needed)
+            composite_image_t1_glszm = sitk.Compose(list(self.img.feature_images[FeatureImageTypes.T1w_GLSZM].values()))
+
+            # Copy information from the original T1-weighted image
+            composite_image_t1_glszm.CopyInformation(self.img.images[structure.BrainImageTypes.T1w])
+
+            # Store the composite image for T1-weighted GLSZM
+            self.img.feature_images[FeatureImageTypes.T1w_GLSZM] = composite_image_t1_glszm
+
+            # Similar steps for T2-weighted GLSZM features
 
         self._generate_feature_matrix()
         return self.img
@@ -193,7 +281,6 @@ class FeatureExtractor:
         # Concatenate the processed feature data along the specified axis (axis=1)
         data = np.concatenate(image_data_list, axis=1)
 
-
         # generate features
         # data = np.concatenate(
         #     [self._image_as_numpy_array(image, mask) for id_, image in self.img.feature_images.items()],
@@ -203,36 +290,6 @@ class FeatureExtractor:
         labels = self._image_as_numpy_array(self.img.images[structure.BrainImageTypes.GroundTruth], mask)
 
         self.img.feature_matrix = (data.astype(np.float32), labels.astype(np.int16))
-
-    def _process_glcm_feature(self, glcm_feature, mask):
-        """Processes the GLCM feature to make it compatible with the feature matrix.
-
-        Args:
-            glcm_feature (dict): The GLCM feature dictionary.
-            mask (np.ndarray): The mask to apply to the feature.
-
-        Returns:
-            np.ndarray: The processed GLCM feature array.
-        """
-
-        # I don't think this method is necessary, but I'm leaving it here for now
-        # DONE : Process GLCM feature
-        # Assuming the GLCM feature is in a dictionary format with the key 'imc1'
-        feature_array = glcm_feature.get('Imc1')
-
-        # Reshape or process the GLCM feature as necessary to match your feature matrix format
-        # The specifics of this will depend on the format of your GLCM feature data
-        # For example, if feature_array is a 3D array (x, y, z), you may need to flatten it
-        # and apply the mask to select only the relevant voxels
-
-        # Example of flattening and applying mask (adjust as needed):
-        feature_array_flattened = feature_array.flatten()
-        masked_feature = feature_array_flattened[mask]
-
-        # Reshape to match the (n_voxels, 1) format expected for each feature
-        processed_feature = masked_feature.reshape(-1, 1)
-
-        return processed_feature
 
     @staticmethod
     def _image_as_numpy_array(image: sitk.Image, mask: np.ndarray = None):
