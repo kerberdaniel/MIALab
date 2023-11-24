@@ -103,7 +103,7 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
                           'Uniformity': False,
                           'Variance': False}
 
-    glcm_parameters_list = {'Autocorrelation': False,
+    glcm_parameters_list = {'Autocorrelation': True,
                             'ClusterProminence': False,
                             'ClusterShade': False,
                             'ClusterTendency': False,
