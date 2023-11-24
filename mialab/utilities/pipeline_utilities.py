@@ -128,8 +128,6 @@ class FeatureExtractor:
 
         # compute GLCM features
         if self.GLCM_features:
-            # Assuming self.img.images[structure.BrainImageTypes.T1w] is your T1-weighted image
-            # and self.img.images[structure.BrainImageTypes.BrainMask] is your brain mask
 
             # Enable GLCM features based on the specified GLCM feature parameters
             glcmT1w_features = glcm.RadiomicsGLCM(self.img.images[structure.BrainImageTypes.T1w],
@@ -176,8 +174,6 @@ class FeatureExtractor:
 
         # compute FO features
         if self.FO_features:
-            # Assuming self.img.images[structure.BrainImageTypes.T1w] is your T1-weighted image
-            # and self.img.images[structure.BrainImageTypes.BrainMask] is your brain mask
 
             # Enable FO features based on the specified FO feature parameters
             foT1w_features = firstorder.RadiomicsFirstOrder(self.img.images[structure.BrainImageTypes.T1w],
@@ -206,8 +202,6 @@ class FeatureExtractor:
 
         # compute GLSZM features
         if self.GLSZM_features:
-            # Assuming self.img.images[structure.BrainImageTypes.T1w] is your T1-weighted image
-            # and self.img.images[structure.BrainImageTypes.BrainMask] is your brain mask
 
             # Enable GLSZM features based on the specified GLSZM feature parameters
             glszmT1w_features = glszm.RadiomicsGLSZM(self.img.images[structure.BrainImageTypes.T1w],
