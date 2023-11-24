@@ -172,14 +172,20 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
 
     # Save parameters to a text file in the timestamped result directory
     params_file_path = os.path.join(result_dir, 'parameters.txt')
+
+    def write_params_to_file(params, file, depth=0):
+        for key, value in params.items():
+            if value is True:
+                file.write(f'{"  " * depth}{key}: {value}\n')
+            elif isinstance(value, dict):
+                file.write(f'{"  " * depth}{key}:\n')
+                if not any(value.values()):  # Check if any value in the nested dictionary is True
+                    file.write(f'{"  " * (depth + 1)}NO feature active\n')
+                else:
+                    write_params_to_file(value, file, depth + 1)
+
     with open(params_file_path, 'w') as params_file:
-        for key, value in pre_process_params.items():
-            if isinstance(value, dict):
-                params_file.write(f'{key}:\n')
-                for sub_key, sub_value in value.items():
-                    params_file.write(f'  {sub_key}: {sub_value}\n')
-            else:
-                params_file.write(f'{key}: {value}\n')
+        write_params_to_file(pre_process_params, params_file)
 
     print('-' * 5, 'Testing...')
 
