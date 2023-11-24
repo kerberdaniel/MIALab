@@ -66,8 +66,8 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
 
     # set parameters for pre-processing
 
-    glszm_parameters_list = {'SmallAreaEmphasis': True,
-                             'LargeAreaEmphasis': True,
+    glszm_parameters_list = {'SmallAreaEmphasis': False,
+                             'LargeAreaEmphasis': False,
                              'GrayLevelNonUniformity': False,
                              'GrayLevelNonUniformityNormalized': False,
                              'SizeZoneNonUniformity': False,
@@ -84,8 +84,8 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
                              'LargeAreaHighGrayLevelEmphasis': False,
                              }
 
-    fo_parameters_list = {'10Percentile': True,
-                          '90Percentile': True,
+    fo_parameters_list = {'10Percentile': False,
+                          '90Percentile': False,
                           'Energy': False,
                           'Entropy': False,
                           'InterquartileRange': False,
@@ -113,11 +113,11 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
                             'DifferenceEntropy': False,
                             'DifferenceVariance': False,
                             'Id': False,
-                            'Idm': True,
+                            'Idm': False,
                             'Idmn': False,
                             'Idn': False,
-                            'Imc1': True,
-                            'Imc2': True,
+                            'Imc1': False,
+                            'Imc2': False,
                             'InverseVariance': False,
                             'JointAverage': False,  # cause error
                             'JointEnergy': False,
@@ -134,11 +134,11 @@ def main(result_dir: str, data_atlas_dir: str, data_train_dir: str, data_test_di
                           'coordinates_feature': True,
                           'intensity_feature': True,
                           'gradient_intensity_feature': True,
-                          'GLCM_features': False,  # Enable GLCM feature extraction
+                          'GLCM_features': True,  # Enable GLCM feature extraction
                           'GLCM_features_parameters': glcm_parameters_list,
                           'FO_features': False,  # Enable FO feature extraction
                           'FO_features_parameters': fo_parameters_list,
-                          'GLSZM_features': True,  # Enable GLSZM feature extraction
+                          'GLSZM_features': False,  # Enable GLSZM feature extraction
                           'GLSZM_features_parameters': glszm_parameters_list,
                           'n_estimators': 50,
                           'max_depth': 60

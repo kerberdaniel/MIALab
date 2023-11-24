@@ -10,8 +10,8 @@ def main():
     current_directory = os.getcwd()
     target_directory = os.path.join(current_directory, 'mia-result')
 
-    folder_name_baseline = '1'  # Change here!!!!!!!!!# Baseline
-    folder_name_features = '2023-11-23-11-13-10'  # Change here!!!!!!!!!
+    folder_name_baseline = '2023-11-24-16-58-51'  # Change here!!!!!!!!!# Baseline
+    folder_name_features = '2023-11-24-18-50-37'  # Change here!!!!!!!!!
     file_name = 'results.csv'
 
     file_path_baseline = os.path.join(target_directory, folder_name_baseline, file_name)

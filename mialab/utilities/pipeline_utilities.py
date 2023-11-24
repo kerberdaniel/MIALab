@@ -198,7 +198,25 @@ class FeatureExtractor:
             # Store the composite image for T1-weighted FO
             self.img.feature_images[FeatureImageTypes.T1w_FO] = composite_image_t1_fo
 
-            # Similar steps for T2-weighted FO features
+            # Enable FO features based on the specified FO feature parameters for T2-weighted image
+            foT2w_features = firstorder.RadiomicsFirstOrder(self.img.images[structure.BrainImageTypes.T2w],
+                                                            self.img.images[structure.BrainImageTypes.BrainMask],
+                                                            voxelBased=True)
+
+            # Enable specified FO features for T2-weighted image
+            foT2w_features.enabledFeatures = self.FO_features_parameters
+
+            # Execute FO feature extraction on the T2-weighted image
+            self.img.feature_images[FeatureImageTypes.T2w_FO] = foT2w_features.execute()
+
+            # Combine individual FO features into a composite image for T2-weighted (if needed)
+            composite_image_t2_fo = sitk.Compose(list(self.img.feature_images[FeatureImageTypes.T2w_FO].values()))
+
+            # Copy information from the original T2-weighted image
+            composite_image_t2_fo.CopyInformation(self.img.images[structure.BrainImageTypes.T2w])
+
+            # Store the composite image for T2-weighted FO
+            self.img.feature_images[FeatureImageTypes.T2w_FO] = composite_image_t2_fo
 
         # compute GLSZM features
         if self.GLSZM_features:
@@ -226,7 +244,25 @@ class FeatureExtractor:
             # Store the composite image for T1-weighted GLSZM
             self.img.feature_images[FeatureImageTypes.T1w_GLSZM] = composite_image_t1_glszm
 
-            # Similar steps for T2-weighted GLSZM features
+            # Enable GLSZM features based on the specified GLSZM feature parameters for T2-weighted image
+            glszmT2w_features = glszm.RadiomicsGLSZM(self.img.images[structure.BrainImageTypes.T2w],
+                                                     self.img.images[structure.BrainImageTypes.BrainMask],
+                                                     voxelBased=True)
+
+            # Enable specified GLSZM features for T2-weighted image
+            glszmT2w_features.enabledFeatures = self.GLSZM_features_parameters
+
+            # Execute GLSZM feature extraction on the T2-weighted image
+            self.img.feature_images[FeatureImageTypes.T2w_GLSZM] = glszmT2w_features.execute()
+
+            # Combine individual GLSZM features into a composite image for T2-weighted (if needed)
+            composite_image_t2_glszm = sitk.Compose(list(self.img.feature_images[FeatureImageTypes.T2w_GLSZM].values()))
+
+            # Copy information from the original T2-weighted image
+            composite_image_t2_glszm.CopyInformation(self.img.images[structure.BrainImageTypes.T2w])
+
+            # Store the composite image for T2-weighted GLSZM
+            self.img.feature_images[FeatureImageTypes.T2w_GLSZM] = composite_image_t2_glszm
 
         self._generate_feature_matrix()
         return self.img
