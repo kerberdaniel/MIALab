@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Define the brain region of interest [Amygdala, Hippocampus, Thalamus, WhiteMatter, GreyMatter]
-brain_region = 'Amygdala'
+brain_region = 'GreyMatter'
 
 # Define the type of feature to be used [GLCM, FOF, GLSZM]
 feature_type = 'GLSZM'
@@ -46,20 +46,15 @@ for subdirectory in os.listdir(parent_folder_path):
 
         # Check if the CSV file exists
         if os.path.exists(csv_file_path):
-            df = pd.read_csv(csv_file_path, delimiter='\t')
-            all_dataframes.append(df)
+            df_DICE = pd.read_csv(csv_file_path, delimiter='\t')
+            all_dataframes.append(df_DICE)
 
 # Combine all dataframes into a single dataframe
 all_data = pd.concat(all_dataframes, ignore_index=True)
 
 # Split the combined column 'LABEL;METRIC;STATISTIC;VALUE' into separate columns
 all_data[['LABEL', 'METRIC', 'STATISTIC', 'VALUE']] = all_data['LABEL;METRIC;STATISTIC;VALUE'].str.split(';',
-                                                                                                         expand=True)
-
-# Display column names and a few rows of the combined dataframe
-print("Column Names:", all_data.columns)
-print("First Few Rows:")
-print(all_data.head())
+                                                                                                  expand=True)
 
 # Extract DICE and Hausdorff distance data
 dice_data = all_data[all_data['METRIC'] == 'DICE']
@@ -76,94 +71,55 @@ structure_HDRFDST = hausdorff_data[hausdorff_data['LABEL'] == brain_region]
 # Calculate the number of features
 num_of_feature = len(structure_DICE) // 2
 
-data_list_DICE = []
-data_list_HDRFDST = []
+mean_DICE_list = []
+std_DICE_list = []
+mean_HDRFDST_list = []
+std_HDRFDST_list = []
 
 # Generate random data for DICE and Hausdorff distance based on mean and standard deviation
 for i in range(num_of_feature):
     mean_DICE, std_DICE = structure_DICE.iloc[i * 2: (i + 1) * 2, 3:4].values.astype(float)
     mean_HDRFDST, std_HDRFDST = structure_HDRFDST.iloc[i * 2: (i + 1) * 2, 3:4].values.astype(float)
-
-    np.random.seed(42)
-    data_DICE = np.random.normal(loc=mean_DICE, scale=std_DICE, size=1000)
-    data_list_DICE.append(data_DICE)
-
-    data_HDRFDST = np.random.normal(loc=mean_HDRFDST, scale=std_HDRFDST, size=1000)
-    data_list_HDRFDST.append(data_HDRFDST)
+    # Append values to lists
+    mean_DICE_list.append(mean_DICE)
+    std_DICE_list.append(std_DICE)
+    mean_HDRFDST_list.append(mean_HDRFDST)
+    std_HDRFDST_list.append(std_HDRFDST)
 
 
+# Create a DataFrame
+dataframe_dice = {
+    f'Feature_{feature_type}': get_used_features(),
+    'Mean_DICE': mean_DICE_list,
+    'Std_DICE': std_DICE_list
+}
+df_DICE = pd.DataFrame(dataframe_dice)
 
-# Define folder name
-folder_name = f'Boxplots_{feature_type}'
+# Convert lists to strings and remove square brackets
+df_DICE['Mean_DICE'] = df_DICE['Mean_DICE'].astype(str).str.strip('[]')
+df_DICE['Std_DICE'] = df_DICE['Std_DICE'].astype(str).str.strip('[]')
 
+# Create a DataFrame for HDRFDST
+dataframe_hdrfdst = {
+    'Mean_HDRFDST': mean_HDRFDST_list,
+    'Std_HDRFDST': std_HDRFDST_list
+}
+df_HDRFDST = pd.DataFrame(dataframe_hdrfdst)
+
+# Convert lists to strings and remove square brackets
+df_HDRFDST['Mean_HDRFDST'] = df_HDRFDST['Mean_HDRFDST'].astype(str).str.strip('[]')
+df_HDRFDST['Std_HDRFDST'] = df_HDRFDST['Std_HDRFDST'].astype(str).str.strip('[]')
+
+combined_df_horizontal = pd.concat([df_DICE, df_HDRFDST], axis=1)
+
+folder_name = f'summary_table'
 # Create the folder if it doesn't exist
 if not os.path.exists(folder_name):
     os.makedirs(folder_name)
 
+# Save the DataFrame to an Excel file
+excel_file_path = os.path.join(folder_name, f'summary_{brain_region}_{feature_type}.xlsx')
+combined_df_horizontal.to_excel(excel_file_path, index=False)
 
-# Set font family for plots
-plt.rcParams['font.family'] = 'DejaVu Serif'
+print(f"DataFrame saved to '{excel_file_path}'.")
 
-# Plot boxplot for DICE scores
-plt.figure(figsize=(16, 8))
-positions = np.arange(1, num_of_feature * 2 + 1, 2)
-labels = get_used_features()
-
-# Customize boxplot appearance
-plt.boxplot(data_list_DICE, positions=positions, labels=labels, widths=0.8, patch_artist=True,
-            medianprops={'color': 'black'}, boxprops={'edgecolor': 'black', 'linewidth': 2, 'facecolor': 'lightgray'})
-
-plt.title('DICE Score', fontsize=20)
-plt.xlabel('Feature name', fontsize=18)
-plt.ylabel(brain_region, fontsize=18)
-plt.xticks(rotation=30, ha='right', fontsize=16)
-
-# Add a line on the y-axis for the mean value of the first boxplot
-mean_value = np.mean(data_list_DICE[0])  # Assuming the first boxplot is at index 0
-plt.axhline(y=mean_value, color='red', linestyle='--', linewidth=1.5, label='Baseline mean Value')
-
-# Show legend
-plt.legend(fontsize='large', loc='upper right')
-# Adjust layout
-plt.tight_layout()
-
-# Activate the grid with major and minor grid lines
-plt.grid(True, linestyle='-', linewidth=0.2, alpha=0.7)  # Major grid lines
-plt.minorticks_on()  # Enable minor ticks
-plt.grid(True, which='minor', linestyle=':', linewidth=0.2, alpha=0.5)  # Minor grid lines
-# Save the figure
-plt.savefig(os.path.join(folder_name, f'Boxplot_{feature_type}_{brain_region}_DICE.png'), dpi=300)
-
-
-# Plot boxplot for Hausdorff distance
-plt.figure(figsize=(16, 8))
-positions = np.arange(1, num_of_feature * 2 + 1, 2)
-labels = get_used_features()
-
-# Customize boxplot appearance
-plt.boxplot(data_list_HDRFDST, positions=positions, labels=labels, widths=0.8, patch_artist=True,
-            medianprops={'color': 'black'}, boxprops={'edgecolor': 'black', 'linewidth': 2, 'facecolor': 'lightgray'})
-
-plt.title('Hausdorff Distance', fontsize=20)
-plt.xlabel(f'{feature_type} feature', fontsize=18)
-plt.ylabel(brain_region, fontsize=16)
-
-plt.xticks(rotation=30, ha='right', fontsize=16)
-
-# Add a line on the y-axis for the mean value of the first boxplot
-mean_value = np.mean(data_list_HDRFDST[0])  # Assuming the first boxplot is at index 0
-plt.axhline(y=mean_value, color='red', linestyle='--', linewidth=1.5, label='Baseline mean Value')
-
-# Show legend
-plt.legend(fontsize='large', loc='upper right')
-
-# Adjust layout
-plt.tight_layout()
-
-# Activate the grid with major and minor grid lines
-plt.grid(True, linestyle='-', linewidth=0.2, alpha=0.7)  # Major grid lines
-plt.minorticks_on()  # Enable minor ticks
-plt.grid(True, which='minor', linestyle=':', linewidth=0.2, alpha=0.5)  # Minor grid lines
-# Save the figure
-plt.savefig(os.path.join(folder_name, f'Boxplot_{feature_type}_{brain_region}_HDRFDST.png'), dpi=300)
-plt.show()

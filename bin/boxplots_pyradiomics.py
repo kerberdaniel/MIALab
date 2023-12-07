@@ -17,49 +17,49 @@ class selected_features:
     def __init__(self):
 
         # comment in / out what you need
-        self.fof_parameters = ['10Percentile',
-                               '90Percentile',
-                               'Energy',
-                               'Entropy',
-                               'InterquartileRange',
-                               'Kurtosis',
-                               'Maximum',
-                               'MeanAbsoluteDeviation',
-                               'Mean',
-                               'Median',
-                               'Minimum',
-                               'Range',
-                               # 'RobustMeanAbsoluteDeviation',  # does not work because can't handle NaN values
-                               'RootMeanSquared',
-                               'Skewness',
-                               'TotalEnergy',
-                               'Uniformity',
-                               'Variance']
+        # self.fof_parameters = ['10Percentile',
+        #                        '90Percentile',
+        #                        'Energy',
+        #                        'Entropy',
+        #                        'InterquartileRange',
+        #                        'Kurtosis',
+        #                        'Maximum',
+        #                        'MeanAbsoluteDeviation',
+        #                        'Mean',
+        #                        'Median',
+        #                        'Minimum',
+        #                        'Range',
+        #                        # 'RobustMeanAbsoluteDeviation',  # does not work because can't handle NaN values
+        #                        'RootMeanSquared',
+        #                        'Skewness',
+        #                        'TotalEnergy',
+        #                        'Uniformity',
+        #                        'Variance']
 
-        # self.glcm_parameters = ['Autocorrelation',
-        #                         'ClusterProminence',
-        #                         'ClusterShade',
-        #                         'ClusterTendency',
-        #                         'Contrast',
-        #                         'Correlation',
-        #                         'DifferenceAverage',
-        #                         'DifferenceEntropy',
-        #                         'DifferenceVariance',
-        #                         'Id',
-        #                         'Idm',
-        #                         'Idmn',
-        #                         'Idn',
-        #                         'Imc1',
-        #                         'Imc2',
-        #                         'InverseVariance',
-        #                         #'JointAverage',  # was not used
-        #                         'JointEnergy',
-        #                         'JointEntropy',
-        #                         #'MCC',  # was not used
-        #                         'MaximumProbability',
-        #                         #'SumAverage',  # was not used
-        #                         'SumEntropy',
-        #                         'SumSquares']
+        self.glcm_parameters = ['Autocorrelation',
+                                'ClusterProminence',
+                                'ClusterShade',
+                                'ClusterTendency',
+                                'Contrast',
+                                'Correlation',
+                                'DifferenceAverage',
+                                'DifferenceEntropy',
+                                'DifferenceVariance',
+                                'Id',
+                                'Idm',
+                                'Idmn',
+                                'Idn',
+                                'Imc1',
+                                'Imc2',
+                                'InverseVariance',
+                                #'JointAverage',  # was not used
+                                'JointEnergy',
+                                'JointEntropy',
+                                #'MCC',  # was not used
+                                'MaximumProbability',
+                                #'SumAverage',  # was not used
+                                'SumEntropy',
+                                'SumSquares']
         #
         # self.glszm_parameters = ['SmallAreaEmphasis',
         #                          'LargeAreaEmphasis',
@@ -69,25 +69,18 @@ class selected_features:
         #                          'SizeZoneNonUniformityNormalized',
         #                          'ZonePercentage',
         #                          'GrayLevelVariance',
-        #                          'ZoneVariance',
-        #                          'ZoneEntropy',
-        #                          'LowGrayLevelZoneEmphasis',
-        #                          'HighGrayLevelZoneEmphasis',
-        #                          'SmallAreaLowGrayLevelEmphasis',
-        #                          'SmallAreaHighGrayLevelEmphasis',
-        #                          'LargeAreaLowGrayLevelEmphasis',
-        #                          'LargeAreaHighGrayLevelEmphasis']
+
 
 
     # comment in / out what you need
-    def GetFofList(self):
-        return self.fof_parameters
+    # def GetFofList(self):
+    #     return self.fof_parameters
 
-    # def GetSofList(self):
-    #     return self.glcm_parameters
-    #
-    # def GetZofList(self):
-    #     return self.glszm_parameters
+    def GetSofList(self):
+        return self.glcm_parameters
+
+     # def GetZofList(self):
+     #     return self.glszm_parameters
 
 
 def boxplot(file_path: str, data: dict, title: str, used_metric: str, x_label: str, y_label: str,
@@ -252,30 +245,30 @@ def read_data_feature_list(path_folder: str, result_filename='results.csv', incl
     #   features
     features = selected_features()
     # comment in / out what you need
-    dirs_fof = features.GetFofList()
-    # dirs_sof = features.GetSofList()
+    #dirs_fof = features.GetFofList()
+    dirs_sof = features.GetSofList()
     # dirs_zof = features.GetZofList()
     if include_baseline:
-        dirs_fof.insert(0, 'a_baseline')
-        # dirs_sof.insert(0, 'a_baseline')
+        #dirs_fof.insert(0, 'a_baseline')
+        dirs_sof.insert(0, 'a_baseline')
         # dirs_zof.insert(0, 'a_baseline')
 
 
     # comment in / out what you need
     # read through FOFs
-    for feature_name in dirs_fof:
-        dir_path = os.path.join(path_folder, feature_name)
-        print(dir_path)
-        methods_fof.append(feature_name)
-        dfs_fof.append(pd.read_csv(os.path.join(dir_path, result_filename), sep=';'))
-        print(os.path.join(dir_path, result_filename))
-
-    # # read through SOFs
-    # for feature_name in dirs_sof:
+    # for feature_name in dirs_fof:
     #     dir_path = os.path.join(path_folder, feature_name)
-    #     methods_sof.append(feature_name)
-    #     dfs_sof.append(pd.read_csv(os.path.join(dir_path, result_filename), sep=';'))
-    #
+    #     print(dir_path)
+    #     methods_fof.append(feature_name)
+    #     dfs_fof.append(pd.read_csv(os.path.join(dir_path, result_filename), sep=';'))
+    #     print(os.path.join(dir_path, result_filename))
+
+    # read through SOFs
+    for feature_name in dirs_sof:
+        dir_path = os.path.join(path_folder, feature_name)
+        methods_sof.append(feature_name)
+        dfs_sof.append(pd.read_csv(os.path.join(dir_path, result_filename), sep=';'))
+
     # # read through GLSZMs
     # for feature_name in dirs_zof:
     #     dir_path = os.path.join(path_folder, feature_name)
@@ -312,6 +305,10 @@ def read_data_features(path_folder: str, result_filename='results.csv'):
 
 
 def main(path_folder, plot_dir: str):
+
+    # Create the plot directory if it doesn't exist
+    os.makedirs(plot_dir, exist_ok=True)
+
     metrics = ('DICE', 'HDRFDST')  # the metrics we want to plot the results for
 
     metrics_yaxis_limits = ((0.0, 1.0), (0.0, None))
@@ -398,7 +395,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--plot_dir',
         type=str,
-        default='./mia-result/boxplots_pyradiomics',
+        default='./mia-result/AA_boxplots_pyradiomics',
         help='Path to the plot directory.'
     )
 
