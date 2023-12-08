@@ -4,23 +4,27 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Define the brain region of interest [Amygdala, Hippocampus, Thalamus, WhiteMatter, GreyMatter]
-brain_region = 'GreyMatter'
+brain_region = 'WhiteMatter'
 
 # Define the type of feature to be used [GLCM, FOF, GLSZM]
 feature_type = 'FOF'
+
+metric = 'HDRFDST'  # DICE or HDRFDST to print only one boxplot
+
+current_directory = os.getcwd()
+parent_folder_path = os.path.join(current_directory, f'mia-result/{feature_type}')
+all_dataframes = []
 
 
 def get_used_features():
     # Define the features based on the chosen type [GLCM, FOF, GLSZM]
     if feature_type == 'GLCM':
-        parameters = ['Baseline', 'Autocorrelation', 'ClusterProminence', 'ClusterShade', 'ClusterTendency',
-                      'Contrast', 'Correlation', 'DifferenceAverage', 'DifferenceEntropy', 'DifferenceVariance',
-                      'Id', 'Idm', 'Idmn', 'Idn', 'Imc1', 'Imc2', 'InverseVariance', 'JointEnergy', 'JointEntropy',
-                      'MaximumProbability', 'SumEntropy', 'SumSquares']
+        parameters = ['Baseline', 'ClusterProminence', 'ClusterShade', 'ClusterTendency',
+                      'Contrast', 'DifferenceAverage', 'DifferenceEntropy', 'DifferenceVariance',
+                      'Imc2', 'InverseVariance', 'JointEntropy',
+                      'SumEntropy', 'SumSquares']
     elif feature_type == 'FOF':
-        parameters = ['Baseline', '10Percentile', '90Percentile', 'Energy', 'Entropy', 'InterquartileRange',
-                      'Kurtosis', 'Maximum', 'MeanAbsoluteDeviation', 'Mean', 'Median', 'Minimum', 'Range',
-                      'RootMeanSquared', 'Skewness', 'TotalEnergy', 'Uniformity', 'Variance']
+        parameters = ['Baseline' ,'90Percentile', 'Energy', 'Median', 'Minimum', 'Range', 'RootMeanSquared', 'TotalEnergy']
     elif feature_type == 'GLSZM':
         parameters = ['Baseline', 'GrayLevelNonUniformity', 'GrayLevelNonUniformityNormalized', 'GrayLevelVariance',
                       'HighGrayLevelZoneEmphasis', 'LargeAreaEmphasis', 'LargeAreaHighGrayLevelEmphasis',
@@ -33,10 +37,6 @@ def get_used_features():
 
     return parameters
 
-
-current_directory = os.getcwd()
-parent_folder_path = os.path.join(current_directory, f'mia-result/{feature_type}')
-all_dataframes = []
 
 # Loop through folders in the specified order
 for subdirectory in get_used_features():
@@ -99,7 +99,7 @@ for i in range(num_of_feature):
     data_list_HDRFDST.append(data_HDRFDST)
 
 # Define folder name
-folder_name = f'Boxplots_{feature_type}'
+folder_name = f'Specific_boxplots_{feature_type}'
 
 # Create the folder if it doesn't exist
 if not os.path.exists(folder_name):
@@ -108,63 +108,68 @@ if not os.path.exists(folder_name):
 # Set font family for plots
 plt.rcParams['font.family'] = 'DejaVu Serif'
 
-# Plot boxplot for DICE scores
-plt.figure(figsize=(16, 8))
-positions = np.arange(1, num_of_feature * 2 + 1, 2)
-labels = get_used_features()
+if metric == 'DICE':
+    # Plot boxplot for DICE scores
+    plt.figure(figsize=(16, 8))
+    positions = np.arange(1, num_of_feature * 2 + 1, 2)
+    labels = get_used_features()
 
-# Customize boxplot appearance
-plt.boxplot(data_list_DICE, positions=positions, labels=labels, showfliers=False, widths=0.8, patch_artist=True,
-            medianprops={'color': 'black'}, boxprops={'edgecolor': 'black', 'linewidth': 2, 'facecolor': 'lightgray'})
+    # Customize boxplot appearance
+    plt.boxplot(data_list_DICE, positions=positions, labels=labels, showfliers=False, widths=0.8, patch_artist=True,
+                medianprops={'color': 'black'},
+                boxprops={'edgecolor': 'black', 'linewidth': 2, 'facecolor': 'lightgray'})
 
-plt.title('DICE Score', fontsize=20)
-plt.xlabel('Feature name', fontsize=18)
-plt.ylabel(brain_region, fontsize=18)
-plt.xticks(rotation=30, ha='right', fontsize=16)
+    plt.title('DICE Score', fontsize=20)
+    plt.xlabel('Feature name', fontsize=18)
+    plt.ylabel(brain_region, fontsize=18)
+    plt.xticks(rotation=30, ha='right', fontsize=16)
 
-# Add a line on the y-axis for the mean value of the first boxplot
-plt.axhline(y=mean_dice_baseline, color='red', linestyle='--', linewidth=1.5, label='Baseline mean Value')
+    # Add a line on the y-axis for the mean value of the first boxplot
+    plt.axhline(y=mean_dice_baseline, color='red', linestyle='--', linewidth=1.5, label='Baseline mean Value')
 
-# Show legend
-plt.legend(fontsize='large', loc='upper right')
-# Adjust layout
-plt.tight_layout()
+    # Show legend
+    plt.legend(fontsize='large', loc='upper right')
+    # Adjust layout
+    plt.tight_layout()
 
-# Activate the grid with major and minor grid lines
-plt.grid(True, linestyle='-', linewidth=0.2, alpha=0.7)  # Major grid lines
-plt.minorticks_on()  # Enable minor ticks
-plt.grid(True, which='minor', linestyle=':', linewidth=0.2, alpha=0.5)  # Minor grid lines
-# Save the figure
-plt.savefig(os.path.join(folder_name, f'Boxplot_{feature_type}_{brain_region}_DICE.png'), dpi=300)
+    # Activate the grid with major and minor grid lines
+    plt.grid(True, linestyle='-', linewidth=0.2, alpha=0.7)  # Major grid lines
+    plt.minorticks_on()  # Enable minor ticks
+    plt.grid(True, which='minor', linestyle=':', linewidth=0.2, alpha=0.5)  # Minor grid lines
+    # Save the figure
+    plt.savefig(os.path.join(folder_name, f'Boxplot_{feature_type}_{brain_region}_DICE.png'), dpi=300)
 
-# Plot boxplot for Hausdorff distance
-plt.figure(figsize=(16, 8))
-positions = np.arange(1, num_of_feature * 2 + 1, 2)
-labels = get_used_features()
+if metric == 'HDRFDST':
+    # Plot boxplot for Hausdorff distance
+    plt.figure(figsize=(16, 8))
+    positions = np.arange(1, num_of_feature * 2 + 1, 2)
+    labels = get_used_features()
 
-# Customize boxplot appearance
-plt.boxplot(data_list_HDRFDST, positions=positions, showfliers=False, labels=labels, widths=0.8, patch_artist=True,
-            medianprops={'color': 'black'}, boxprops={'edgecolor': 'black', 'linewidth': 2, 'facecolor': 'lightgray'})
+    # Customize boxplot appearance
+    plt.boxplot(data_list_HDRFDST, positions=positions, showfliers=False, labels=labels, widths=0.8, patch_artist=True,
+                medianprops={'color': 'black'},
+                boxprops={'edgecolor': 'black', 'linewidth': 2, 'facecolor': 'lightgray'})
 
-plt.title('Hausdorff Distance', fontsize=20)
-plt.xlabel(f'{feature_type} feature', fontsize=18)
-plt.ylabel(brain_region, fontsize=16)
+    plt.title('Hausdorff Distance', fontsize=20)
+    plt.xlabel(f'{feature_type} feature', fontsize=18)
+    plt.ylabel(brain_region, fontsize=16)
 
-plt.xticks(rotation=30, ha='right', fontsize=16)
+    plt.xticks(rotation=30, ha='right', fontsize=16)
 
-# Add a line on the y-axis for the mean value of the first boxplot
-plt.axhline(y=mean_hdrfdst_baseline, color='red', linestyle='--', linewidth=1.5, label='Baseline mean Value')
+    # Add a line on the y-axis for the mean value of the first boxplot
+    plt.axhline(y=mean_hdrfdst_baseline, color='red', linestyle='--', linewidth=1.5, label='Baseline mean Value')
 
-# Show legend
-plt.legend(fontsize='large', loc='upper right')
+    # Show legend
+    plt.legend(fontsize='large', loc='upper right')
 
-# Adjust layout
-plt.tight_layout()
+    # Adjust layout
+    plt.tight_layout()
 
-# Activate the grid with major and minor grid lines
-plt.grid(True, linestyle='-', linewidth=0.2, alpha=0.7)  # Major grid lines
-plt.minorticks_on()  # Enable minor ticks
-plt.grid(True, which='minor', linestyle=':', linewidth=0.2, alpha=0.5)  # Minor grid lines
-# Save the figure
-plt.savefig(os.path.join(folder_name, f'Boxplot_{feature_type}_{brain_region}_HDRFDST.png'), dpi=300)
+    # Activate the grid with major and minor grid lines
+    plt.grid(True, linestyle='-', linewidth=0.2, alpha=0.7)  # Major grid lines
+    plt.minorticks_on()  # Enable minor ticks
+    plt.grid(True, which='minor', linestyle=':', linewidth=0.2, alpha=0.5)  # Minor grid lines
+    # Save the figure
+    plt.savefig(os.path.join(folder_name, f'Boxplot_{feature_type}_{brain_region}_HDRFDST.png'), dpi=300)
+
 plt.show()

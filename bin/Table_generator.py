@@ -2,7 +2,8 @@ import os
 import pandas as pd
 
 # Define the type of feature to be used [GLCM, FOF, GLSZM]
-feature_type = 'GLSZM'
+feature_type = 'FOF'
+
 
 def get_used_features():
     # Define the features based on the chosen type [GLCM, FOF, GLSZM]
@@ -27,6 +28,7 @@ def get_used_features():
 
     return parameters
 
+
 # Define the parent folder path
 current_directory = os.getcwd()
 parent_folder_path = os.path.join(current_directory, f'mia-result/{feature_type}')
@@ -35,8 +37,8 @@ parent_folder_path = os.path.join(current_directory, f'mia-result/{feature_type}
 for brain_region in ['Amygdala', 'Hippocampus', 'Thalamus', 'WhiteMatter', 'GreyMatter']:
     all_dataframes = []
 
-    # Loop through subdirectories in the parent folder
-    for subdirectory in os.listdir(parent_folder_path):
+    # Loop through folders in the specified order
+    for subdirectory in get_used_features():
         subdirectory_path = os.path.join(parent_folder_path, subdirectory)
 
         if os.path.isdir(subdirectory_path):
@@ -44,14 +46,15 @@ for brain_region in ['Amygdala', 'Hippocampus', 'Thalamus', 'WhiteMatter', 'Grey
 
             # Check if the CSV file exists
             if os.path.exists(csv_file_path):
-                df_DICE = pd.read_csv(csv_file_path, delimiter='\t')
-                all_dataframes.append(df_DICE)
+                df = pd.read_csv(csv_file_path, delimiter='\t')
+                all_dataframes.append(df)
 
     # Combine all dataframes into a single dataframe
     all_data = pd.concat(all_dataframes, ignore_index=True)
 
     # Split the combined column 'LABEL;METRIC;STATISTIC;VALUE' into separate columns
-    all_data[['LABEL', 'METRIC', 'STATISTIC', 'VALUE']] = all_data['LABEL;METRIC;STATISTIC;VALUE'].str.split(';', expand=True)
+    all_data[['LABEL', 'METRIC', 'STATISTIC', 'VALUE']] = all_data['LABEL;METRIC;STATISTIC;VALUE'].str.split(';',
+                                                                                                             expand=True)
 
     # Extract DICE and Hausdorff distance data
     dice_data = all_data[all_data['METRIC'] == 'DICE']
