@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Define the brain region of interest [Amygdala, Hippocampus, Thalamus, WhiteMatter, GreyMatter]
-brain_region = 'Amygdala'
+brain_region = 'GreyMatter'
 
 # Define the type of feature to be used [GLCM, FOF, GLSZM]
 feature_type = 'GLSZM'
@@ -25,8 +25,9 @@ def get_used_features():
         parameters = ['Baseline', 'GrayLevelNonUniformity', 'GrayLevelNonUniformityNormalized', 'GrayLevelVariance',
                       'HighGrayLevelZoneEmphasis', 'LargeAreaEmphasis', 'LargeAreaHighGrayLevelEmphasis',
                       'LargeAreaLowGrayLevelEmphasis', 'LowGrayLevelZoneEmphasis', 'SizeZoneNonUniformity',
-                      'SizeZoneNonUniformityNormalized','SmallAreaEmphasis', 'SmallAreaHighGrayLevelEmphasis', 'SmallAreaLowGrayLevelEmphasis',
-                      'ZoneEntropy', 'ZonePercentage','ZoneVariance']
+                      'SizeZoneNonUniformityNormalized', 'SmallAreaEmphasis', 'SmallAreaHighGrayLevelEmphasis',
+                      'SmallAreaLowGrayLevelEmphasis',
+                      'ZoneEntropy', 'ZonePercentage', 'ZoneVariance']
     else:
         raise ValueError("Invalid feature type. Choose from: [GLCM, FOF, GLSZM]")
 
@@ -78,20 +79,24 @@ num_of_feature = len(structure_DICE) // 2
 
 data_list_DICE = []
 data_list_HDRFDST = []
+mean_dice_baseline = 0
+mean_hdrfdst_baseline = 0
 
 # Generate random data for DICE and Hausdorff distance based on mean and standard deviation
 for i in range(num_of_feature):
     mean_DICE, std_DICE = structure_DICE.iloc[i * 2: (i + 1) * 2, 3:4].values.astype(float)
     mean_HDRFDST, std_HDRFDST = structure_HDRFDST.iloc[i * 2: (i + 1) * 2, 3:4].values.astype(float)
 
+    if i == 0:
+        mean_dice_baseline = mean_DICE
+        mean_hdrfdst_baseline = mean_HDRFDST
+
     np.random.seed(42)
-    data_DICE = np.random.normal(loc=mean_DICE, scale=std_DICE, size=1000)
+    data_DICE = np.random.normal(loc=mean_DICE, scale=std_DICE, size=10000)
     data_list_DICE.append(data_DICE)
 
-    data_HDRFDST = np.random.normal(loc=mean_HDRFDST, scale=std_HDRFDST, size=1000)
+    data_HDRFDST = np.random.normal(loc=mean_HDRFDST, scale=std_HDRFDST, size=10000)
     data_list_HDRFDST.append(data_HDRFDST)
-
-
 
 # Define folder name
 folder_name = f'Boxplots_{feature_type}'
@@ -99,7 +104,6 @@ folder_name = f'Boxplots_{feature_type}'
 # Create the folder if it doesn't exist
 if not os.path.exists(folder_name):
     os.makedirs(folder_name)
-
 
 # Set font family for plots
 plt.rcParams['font.family'] = 'DejaVu Serif'
@@ -110,7 +114,7 @@ positions = np.arange(1, num_of_feature * 2 + 1, 2)
 labels = get_used_features()
 
 # Customize boxplot appearance
-plt.boxplot(data_list_DICE, positions=positions, labels=labels, widths=0.8, patch_artist=True,
+plt.boxplot(data_list_DICE, positions=positions, labels=labels, showfliers=False, widths=0.8, patch_artist=True,
             medianprops={'color': 'black'}, boxprops={'edgecolor': 'black', 'linewidth': 2, 'facecolor': 'lightgray'})
 
 plt.title('DICE Score', fontsize=20)
@@ -119,8 +123,7 @@ plt.ylabel(brain_region, fontsize=18)
 plt.xticks(rotation=30, ha='right', fontsize=16)
 
 # Add a line on the y-axis for the mean value of the first boxplot
-mean_value = np.mean(data_list_DICE[0])  # Assuming the first boxplot is at index 0
-plt.axhline(y=mean_value, color='red', linestyle='--', linewidth=1.5, label='Baseline mean Value')
+plt.axhline(y=mean_dice_baseline, color='red', linestyle='--', linewidth=1.5, label='Baseline mean Value')
 
 # Show legend
 plt.legend(fontsize='large', loc='upper right')
@@ -134,14 +137,13 @@ plt.grid(True, which='minor', linestyle=':', linewidth=0.2, alpha=0.5)  # Minor 
 # Save the figure
 plt.savefig(os.path.join(folder_name, f'Boxplot_{feature_type}_{brain_region}_DICE.png'), dpi=300)
 
-
 # Plot boxplot for Hausdorff distance
 plt.figure(figsize=(16, 8))
 positions = np.arange(1, num_of_feature * 2 + 1, 2)
 labels = get_used_features()
 
 # Customize boxplot appearance
-plt.boxplot(data_list_HDRFDST, positions=positions, labels=labels, widths=0.8, patch_artist=True,
+plt.boxplot(data_list_HDRFDST, positions=positions, showfliers=False, labels=labels, widths=0.8, patch_artist=True,
             medianprops={'color': 'black'}, boxprops={'edgecolor': 'black', 'linewidth': 2, 'facecolor': 'lightgray'})
 
 plt.title('Hausdorff Distance', fontsize=20)
@@ -151,8 +153,7 @@ plt.ylabel(brain_region, fontsize=16)
 plt.xticks(rotation=30, ha='right', fontsize=16)
 
 # Add a line on the y-axis for the mean value of the first boxplot
-mean_value = np.mean(data_list_HDRFDST[0])  # Assuming the first boxplot is at index 0
-plt.axhline(y=mean_value, color='red', linestyle='--', linewidth=1.5, label='Baseline mean Value')
+plt.axhline(y=mean_hdrfdst_baseline, color='red', linestyle='--', linewidth=1.5, label='Baseline mean Value')
 
 # Show legend
 plt.legend(fontsize='large', loc='upper right')
